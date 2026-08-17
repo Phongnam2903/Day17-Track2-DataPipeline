@@ -1,22 +1,10 @@
-VENV := .venv
-
-ifeq ($(OS),Windows_NT)
-SHELL  := cmd.exe
-PYTHON ?= python
-PY     := $(VENV)/Scripts/python.exe
-PIP    := $(PY) -m pip
-DBT    := $(VENV)/Scripts/dbt.exe
-export PYTHONUTF8 := 1
-else
-SHELL  := /bin/bash
-PYTHON ?= python3
-PY     := $(VENV)/bin/python
-PIP    := $(VENV)/bin/pip
-DBT    := $(VENV)/bin/dbt
-endif
+SHELL   := /bin/bash
+VENV    := .venv
+PY      := $(VENV)/bin/python
+PIP     := $(VENV)/bin/pip
+DBT     := $(VENV)/bin/dbt
 
 export LAB17_DB := $(CURDIR)/warehouse.duckdb
-export PYTHONUTF8 := 1
 export DBT_PROFILES_DIR := $(CURDIR)/dbt
 
 .DEFAULT_GOAL := help
@@ -32,11 +20,7 @@ help:  ## danh sách lệnh
 	@echo ""
 
 setup:  ## venv + thư viện + sinh dữ liệu (chạy một lần)
-ifeq ($(OS),Windows_NT)
-	@if not exist "$(PY)" $(PYTHON) -m venv "$(VENV)"
-else
-	@test -d $(VENV) || $(PYTHON) -m venv $(VENV)
-endif
+	@test -d $(VENV) || python3 -m venv $(VENV)
 	@$(PIP) install -q --upgrade pip
 	@$(PIP) install -q -r requirements.txt
 	@$(PY) seed/generate.py
