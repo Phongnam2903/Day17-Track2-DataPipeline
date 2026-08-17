@@ -195,12 +195,23 @@ pipeline dừng khi gặp bản ghi lỗi?
 
 ## 4 · *(mở rộng, không bắt buộc)* Bài trong EXTRA.md
 
+### 4.1 · Bài A — tối ưu query dashboard chậm
+
 |                             |                                                                                                                                 |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | **Bài đã làm**    | Bài A — tối ưu query dashboard chậm. |
 | **Nguyên nhân**     | Dataset gồm 5.000 file Parquet rất nhỏ, không partition nên DuckDB phải mở và quét toàn bộ file. Điều kiện `strftime(event_time, ...)` bọc cột trong hàm nên không thể tận dụng partition pruning hoặc min/max statistics. |
 | **Cách khắc phục** | Trong `tools/compact.py`, compact dữ liệu thành 14 partition theo `event_date`, sắp theo `customer_name, event_time` và đặt row group 2.048 hàng. Trong `queries/dashboard.sql`, đọc dataset mới với `hive_partitioning=true` và lọc trực tiếp bằng `event_date = DATE '2026-08-09'`. |
 | **Bằng chứng**      | `rows scanned`: 5.000.000 → 9.324, giảm **536,3×** · file: 5.000 → 14 · số hàng: 130.683 → 130.683 · result hash giữ nguyên `4379e4c5d9f3` · `make verify` vẫn đạt 4/4. |
+
+### 4.2 · Bài B — consumer gặp sự cố giữa batch
+
+| | |
+|---|---|
+| **Triệu chứng** | Consumer ban đầu commit offset trước khi ghi batch. Nếu bị kill ở batch 7, offset đã tiến tới 3.500 nhưng 500 message của batch chưa được ghi; restart bỏ qua chúng và chỉ còn 19.500/20.000 hàng. |
+| **Nguyên nhân** | Thứ tự “commit offset → ghi dữ liệu” tạo semantics at-most-once: lỗi giữa hai thao tác gây mất dữ liệu. Chỉ đảo thành “ghi → commit” sẽ tạo at-least-once, nhưng batch chưa commit sẽ được phát lại và `INSERT` thuần sẽ sinh bản ghi trùng. Exactly-once không được bảo đảm ở tầng transport. |
+| **Cách khắc phục** | Trong `ingest/consumer.py`, đặt `event_id` làm primary key; ghi mỗi batch bằng một statement nguyên tử `INSERT … ON CONFLICT (event_id) DO UPDATE`; đổi thứ tự thành “ghi batch → điểm crash → commit offset”. Chọn `DO UPDATE` thay vì `DO NOTHING` để một message replay có nội dung mới sẽ cập nhật trạng thái mới nhất thay vì giữ dữ liệu cũ. |
+| **Bằng chứng** | `make crash-test`: lượt chuẩn A = 20.000 hàng/20.000 event; crash tại batch 7 để offset ở 3.000; restart đọc lại batch 7 và kết thúc với 20.000 hàng/20.000 event, không mất, không trùng, C = A — **ĐẠT**. `make verify` sau đó vẫn đạt 4/4. |
 
 ---
 
