@@ -1,6 +1,6 @@
 # Báo cáo LAB 17 — Data Pipeline Engineering
 
-**Họ tên:** …  **Lớp:** AICB-P2T2  **Ngày:** …
+**Họ tên:** Nguyễn Nam Phong  **Lớp:** AICB-P2T2  **Ngày:** 17/08/2026
 
 ---
 
@@ -10,53 +10,34 @@
 <summary>Dán nguyên output ba lần chạy vào đây</summary>
 
 ```
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  LAB 17 · make verify
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  run 1/1 … 34.5s
-
-  BẢNG                  ỔN ĐỊNH          SỐ HÀNG     KỲ VỌNG   GHI CHÚ
-  ──────────────────────────────────────────────────────────────────────────
-  gold_training_set     ✓ ok              12,480      12,480   ✓
-  gold_feature_daily    ✓ ok               8,645       9,100   ✗ thiếu 455 hàng
-  gold_doc_chunks       ✓ ok              31,200      31,200   ✓
-  quarantine_tickets    ✓ ok                   0         312   ✗ thiếu 312 hàng
-
-  KIỂM TRA KHÁC
-  ──────────────────────────────────────────────────────────────────────────
-  dbt test                                    ✓ 9/9 pass
-  silver_tickets.priority ∈ 1..4, không NULL  ✗ 6,606 hàng sai
-  quarantine_tickets đúng số bản ghi lỗi      ✗ 0 / 312
-  gold_training_set: 1 hàng / 1 ticket        ✓ không lặp
-  bài mở rộng (EXTRA.md)                      — chưa chạy `make seed-extra`
-  DAG: catchup / max_active_runs              ✓ False / 1
-
-  TỔNG KẾT
-  ──────────────────────────────────────────────────────────────────────────
-  ✓  1 · gold_training_set idempotent & đúng số hàng
-  ✗  2 · gold_feature_daily đủ hàng (dữ liệu về muộn)
-  ✗  3 · contract + quarantine + dbt test
-  ✓  4 · gold_doc_chunks vẫn ổn định (đối chứng)
-  ──────────────────────────────────────────────────────────────────────────
-  2/4 tiêu chí đạt
+PS D:\CODE\AITHUCCHIEN\Track_2\Day17-Track2-DataPipeline> make verify
 
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   LAB 17 · make verify
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  run 1/1 … 32.5s
+  run 1/3 … 33.1s
+  run 2/3 … 33.2s
+  run 3/3 … 33.1s
 
   BẢNG                  ỔN ĐỊNH          SỐ HÀNG     KỲ VỌNG   GHI CHÚ
   ──────────────────────────────────────────────────────────────────────────
   gold_training_set     ✓ ok              12,480      12,480   ✓
   gold_feature_daily    ✓ ok               9,100       9,100   ✓
   gold_doc_chunks       ✓ ok              31,200      31,200   ✓
-  quarantine_tickets    ✓ ok                   0         312   ✗ thiếu 312 hàng
+  quarantine_tickets    ✓ ok                 312         312   ✓
+
+  CHECKSUM từng lượt
+  ──────────────────────────────────────────────────────────────────────────
+  gold_training_set     8dd7c98653    8dd7c98653    8dd7c98653   ✓
+  gold_feature_daily    3db448685c    3db448685c    3db448685c   ✓
+  gold_doc_chunks       92d8e50131    92d8e50131    92d8e50131   ✓
+  quarantine_tickets    ebb89036fb    ebb89036fb    ebb89036fb   ✓
 
   KIỂM TRA KHÁC
   ──────────────────────────────────────────────────────────────────────────
-  dbt test                                    ✓ 9/9 pass
-  silver_tickets.priority ∈ 1..4, không NULL  ✗ 6,606 hàng sai
-  quarantine_tickets đúng số bản ghi lỗi      ✗ 0 / 312
+  dbt test                                    ✓ 11/11 pass
+  silver_tickets.priority ∈ 1..4, không NULL  ✓ sạch
+  quarantine_tickets đúng số bản ghi lỗi      ✓ 312 / 312
   gold_training_set: 1 hàng / 1 ticket        ✓ không lặp
   bài mở rộng (EXTRA.md)                      — chưa chạy `make seed-extra`
   DAG: catchup / max_active_runs              ✓ False / 1
@@ -65,26 +46,108 @@
   ──────────────────────────────────────────────────────────────────────────
   ✓  1 · gold_training_set idempotent & đúng số hàng
   ✓  2 · gold_feature_daily đủ hàng (dữ liệu về muộn)
-  ✗  3 · contract + quarantine + dbt test
+  ✓  3 · contract + quarantine + dbt test
   ✓  4 · gold_doc_chunks vẫn ổn định (đối chứng)
   ──────────────────────────────────────────────────────────────────────────
-  3/4 tiêu chí đạt
+  4/4 tiêu chí đạt
+
+PS D:\CODE\AITHUCCHIEN\Track_2\Day17-Track2-DataPipeline> make verify
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LAB 17 · make verify
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  run 1/3 … 33.5s
+  run 2/3 … 33.5s
+  run 3/3 … 32.4s
+
+  BẢNG                  ỔN ĐỊNH          SỐ HÀNG     KỲ VỌNG   GHI CHÚ
+  ──────────────────────────────────────────────────────────────────────────
+  gold_training_set     ✓ ok              12,480      12,480   ✓
+  gold_feature_daily    ✓ ok               9,100       9,100   ✓
+  gold_doc_chunks       ✓ ok              31,200      31,200   ✓
+  quarantine_tickets    ✓ ok                 312         312   ✓
+
+  CHECKSUM từng lượt
+  ──────────────────────────────────────────────────────────────────────────
+  gold_training_set     8dd7c98653    8dd7c98653    8dd7c98653   ✓
+  gold_feature_daily    3db448685c    3db448685c    3db448685c   ✓
+  gold_doc_chunks       92d8e50131    92d8e50131    92d8e50131   ✓
+  quarantine_tickets    ebb89036fb    ebb89036fb    ebb89036fb   ✓
+
+  KIỂM TRA KHÁC
+  ──────────────────────────────────────────────────────────────────────────
+  dbt test                                    ✓ 11/11 pass
+  silver_tickets.priority ∈ 1..4, không NULL  ✓ sạch
+  quarantine_tickets đúng số bản ghi lỗi      ✓ 312 / 312
+  gold_training_set: 1 hàng / 1 ticket        ✓ không lặp
+  bài mở rộng (EXTRA.md)                      — chưa chạy `make seed-extra`
+  DAG: catchup / max_active_runs              ✓ False / 1
+
+  TỔNG KẾT
+  ──────────────────────────────────────────────────────────────────────────
+  ✓  1 · gold_training_set idempotent & đúng số hàng
+  ✓  2 · gold_feature_daily đủ hàng (dữ liệu về muộn)
+  ✓  3 · contract + quarantine + dbt test
+  ✓  4 · gold_doc_chunks vẫn ổn định (đối chứng)
+  ──────────────────────────────────────────────────────────────────────────
+  4/4 tiêu chí đạt
+
+PS D:\CODE\AITHUCCHIEN\Track_2\Day17-Track2-DataPipeline> make verify
+
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LAB 17 · make verify
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  run 1/3 … 32.1s
+  run 2/3 … 33.1s
+  run 3/3 … 34.3s
+
+  BẢNG                  ỔN ĐỊNH          SỐ HÀNG     KỲ VỌNG   GHI CHÚ
+  ──────────────────────────────────────────────────────────────────────────
+  gold_training_set     ✓ ok              12,480      12,480   ✓
+  gold_feature_daily    ✓ ok               9,100       9,100   ✓
+  gold_doc_chunks       ✓ ok              31,200      31,200   ✓
+  quarantine_tickets    ✓ ok                 312         312   ✓
+
+  CHECKSUM từng lượt
+  ──────────────────────────────────────────────────────────────────────────
+  gold_training_set     8dd7c98653    8dd7c98653    8dd7c98653   ✓
+  gold_feature_daily    3db448685c    3db448685c    3db448685c   ✓
+  gold_doc_chunks       92d8e50131    92d8e50131    92d8e50131   ✓
+  quarantine_tickets    ebb89036fb    ebb89036fb    ebb89036fb   ✓
+
+  KIỂM TRA KHÁC
+  ──────────────────────────────────────────────────────────────────────────
+  dbt test                                    ✓ 11/11 pass
+  silver_tickets.priority ∈ 1..4, không NULL  ✓ sạch
+  quarantine_tickets đúng số bản ghi lỗi      ✓ 312 / 312
+  gold_training_set: 1 hàng / 1 ticket        ✓ không lặp
+  bài mở rộng (EXTRA.md)                      — chưa chạy `make seed-extra`
+  DAG: catchup / max_active_runs              ✓ False / 1
+
+  TỔNG KẾT
+  ──────────────────────────────────────────────────────────────────────────
+  ✓  1 · gold_training_set idempotent & đúng số hàng
+  ✓  2 · gold_feature_daily đủ hàng (dữ liệu về muộn)
+  ✓  3 · contract + quarantine + dbt test
+  ✓  4 · gold_doc_chunks vẫn ổn định (đối chứng)
+  ──────────────────────────────────────────────────────────────────────────
+  4/4 tiêu chí đạt
 ```
 
 </details>
 
-Tổng kết: **… / 4 tiêu chí đạt**
+Tổng kết: **4/4 tiêu chí đạt**
 
 ---
 
 ## 1 · Kích thước bảng training tăng sau mỗi lần chạy
 
-|                             |                                                             |
-| --------------------------- | ----------------------------------------------------------- |
-| **Triệu chứng**     |                                                             |
-| **Nguyên nhân**     |                                                             |
-| **Cách khắc phục** | *(file + thay đổi)*                                     |
-| **Bằng chứng**      | trước: … hàng · sau: … hàng · checksum 3 lượt: … |
+|                             |                                                                                                                                                                                                                                                                                                                                                                                                  |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Triệu chứng**     | Sau ba lượt chạy,`gold_training_set` tăng lên 38.750 hàng thay vì 12.480; cả 12.480 `ticket_id` đều xuất hiện lặp lại và checksum thay đổi giữa các lượt.                                                                                                                                                                                                               |
+| **Nguyên nhân**     | Model incremental không khai báo`unique_key`, nên dbt sinh phép ghi thêm. Khi Airflow retry hoặc người trực Clear Task, cùng partition được xử lý lại và các ticket đã tồn tại bị `INSERT` thêm thay vì cập nhật. `catchup=True` và không giới hạn số DAG run đồng thời làm tăng khả năng kích hoạt lỗi, nhưng không phải nguyên nhân gốc. |
+| **Cách khắc phục** | Trong`dbt/models/gold/gold_training_set.sql`, khai báo `unique_key='ticket_id'` và `incremental_strategy='merge'`; giữ nguyên bộ lọc `run_date`. Trong `dags/ai_training_pipeline.py`, đặt `catchup=False` và `max_active_runs=1`.                                                                                                                                        |
+| **Bằng chứng**      | Trước: 38.750 hàng, 12.480 ticket bị lặp · sau: 12.480 hàng, không lặp · checksum ba lượt đều là`8dd7c98653…`.                                                                                                                                                                                                                                                                 |
 
 ---
 
@@ -93,11 +156,11 @@ Tổng kết: **… / 4 tiêu chí đạt**
 |                                     |                                                                                                                                                                                                              |
 | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Triệu chứng**             | `gold_feature_daily` chỉ có 8.645/9.100 hàng kỳ vọng; dữ liệu về muộn hơn một ngày chiếm 5,05%.                                                                                               |
-| **P99 độ trễ đo được** | **2,73 ngày** *(bắt buộc)*                                                                                                                                                                        |
+| **P99 độ trễ đo được** | **2,73 ngày**                                                                                                                                                                                        |
 | **Lookback đã chọn**       | 3 ngày — làm tròn lên từ P99 = 2,7258 ngày để bao phủ 99% độ trễ quan sát được.                                                                                                             |
 | **Nguyên nhân**             | Watermark dựa trên`max(event_date)` của bảng đích chỉ nhận ngày mới hơn. Event xảy ra ở ngày cũ nhưng đến warehouse muộn bị nằm sau watermark và không bao giờ được tổng hợp. |
 | **Cách khắc phục**         | Trong`dbt/models/gold/gold_feature_daily.sql`, dùng composite key `['event_date', 'customer_id']`, chiến lược `merge` và tính lại lookback 3 ngày.                                             |
-| **Bằng chứng**              | trước: 8.645 hàng · sau: 9.100 hàng · checksum 3 lượt:`3db448685c…` giống nhau                                                                                                                   |
+| **Bằng chứng**              | Trước: 8.645 hàng · sau: 9.100 hàng · checksum ba lượt`3db448685c…` giống nhau.                                                                                                                  |
 
 Vì sao chọn P99 làm căn cứ thay vì `max`? Chi phí của mỗi lựa chọn là gì?
 
@@ -132,19 +195,19 @@ pipeline dừng khi gặp bản ghi lỗi?
 
 ## 4 · *(mở rộng, không bắt buộc)* Bài trong EXTRA.md
 
-|                             |                     |
-| --------------------------- | ------------------- |
-| **Bài đã làm**    | A / B / không làm |
-| **Nguyên nhân**     |                     |
-| **Cách khắc phục** |                     |
-| **Bằng chứng**      |                     |
+|                             |                                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Bài đã làm**    | Không làm.                                                                                                                    |
+| **Nguyên nhân**     | Hai bài mở rộng không bắt buộc; phạm vi thực hiện tập trung vào ba sự cố chính để hoàn thành đủ 100 điểm. |
+| **Cách khắc phục** | Không áp dụng.                                                                                                               |
+| **Bằng chứng**      | `make verify` ghi nhận “chưa chạy make seed-extra”; bốn tiêu chí bắt buộc vẫn đạt 4/4.                           |
 
 ---
 
 ## 5 · Tổng kết
 
-| Nhiệm vụ | Khi tiếp nhận một hệ thống chưa quen, tôi sẽ kiểm tra điều này trước tiên |
-| ---------- | ---------------------------------------------------------------------------------------- |
-| 1          |                                                                                          |
-| 2          |                                                                                          |
-| 3          |                                                                                          |
+| Nhiệm vụ | Khi tiếp nhận một hệ thống chưa quen, tôi sẽ kiểm tra điều này trước tiên                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1          | Xác định grain, khóa tự nhiên, chiến lược materialization và hành vi khi scheduler retry hoặc chạy đồng thời.                |
+| 2          | So sánh`event_time` với `_ingested_at`, đo phân bố độ trễ và kiểm tra watermark có bỏ sót dữ liệu đến muộn hay không. |
+| 3          | Kiểm tra phân bố dữ liệu thô, lịch sử thay đổi schema, trạng thái data contract và luồng xử lý bản ghi không hợp lệ.     |
