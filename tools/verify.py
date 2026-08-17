@@ -123,12 +123,17 @@ def data_invariants() -> list[tuple[str, bool, str]]:
 
 
 def dashboard_check() -> dict:
-    from tools.explain import TARGET_FACTOR, load_baseline, measure, read_query
+    from tools.explain import (
+        TARGET_FACTOR, load_baseline, matched_files, measure, read_query,
+    )
 
     cwd = pathlib.Path.cwd()
     try:
         os.chdir(pathlib.Path(__file__).resolve().parent.parent)
-        m = measure(read_query())
+        sql = read_query()
+        if not matched_files(sql):
+            return {"ok": False, "note": "chưa chạy `make seed-extra`"}
+        m = measure(sql)
     finally:
         os.chdir(cwd)
     base = load_baseline()
@@ -239,8 +244,9 @@ def main() -> int:
         print(f"  {'  kết quả truy vấn không đổi':<44}"
               f"{OK if d['same_result'] else BAD}")
 
-    if d is None:
-        print(f"  {'bài mở rộng (EXTRA.md)':<44}— chưa chạy `make seed-extra`")
+    if d is None or "note" in d:
+        note = d["note"] if d else "chưa chạy `make seed-extra`"
+        print(f"  {'bài mở rộng (EXTRA.md)':<44}— {note}")
 
     from tools.check_dag import check as check_dag
     dag = check_dag()
