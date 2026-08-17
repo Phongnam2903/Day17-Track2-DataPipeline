@@ -1,33 +1,3 @@
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  LAB 17 · make verify
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  run 1/1 … 32.5s
-
-  BẢNG                  ỔN ĐỊNH          SỐ HÀNG     KỲ VỌNG   GHI CHÚ
-  ──────────────────────────────────────────────────────────────────────────
-  gold_training_set     ✓ ok              12,480      12,480   ✓
-  gold_feature_daily    ✓ ok               9,100       9,100   ✓
-  gold_doc_chunks       ✓ ok              31,200      31,200   ✓
-  quarantine_tickets    ✓ ok                   0         312   ✗ thiếu 312 hàng
-
-  KIỂM TRA KHÁC
-  ──────────────────────────────────────────────────────────────────────────
-  dbt test                                    ✓ 9/9 pass
-  silver_tickets.priority ∈ 1..4, không NULL  ✗ 6,606 hàng sai
-  quarantine_tickets đúng số bản ghi lỗi      ✗ 0 / 312
-  gold_training_set: 1 hàng / 1 ticket        ✓ không lặp
-  bài mở rộng (EXTRA.md)                      — chưa chạy `make seed-extra`
-  DAG: catchup / max_active_runs              ✓ False / 1
-
-  TỔNG KẾT
-  ──────────────────────────────────────────────────────────────────────────
-  ✓  1 · gold_training_set idempotent & đúng số hàng
-  ✓  2 · gold_feature_daily đủ hàng (dữ liệu về muộn)
-  ✗  3 · contract + quarantine + dbt test
-  ✓  4 · gold_doc_chunks vẫn ổn định (đối chứng)
-  ──────────────────────────────────────────────────────────────────────────
-  3/4 tiêu chí đạt
-
 # Báo cáo LAB 17 — Data Pipeline Engineering
 
 **Họ tên:** …  **Lớp:** AICB-P2T2  **Ngày:** …
@@ -99,7 +69,6 @@
   ✓  4 · gold_doc_chunks vẫn ổn định (đối chứng)
   ──────────────────────────────────────────────────────────────────────────
   3/4 tiêu chí đạt
-  
 ```
 
 </details>
@@ -142,18 +111,22 @@ Vì sao chọn P99 làm căn cứ thay vì `max`? Chi phí của mỗi lựa ch�
 
 ## 3 · Kiểu dữ liệu cột priority thay đổi giữa chu kỳ
 
-|                                                                         |                                                           |
-| ----------------------------------------------------------------------- | --------------------------------------------------------- |
-| **Triệu chứng**                                                 |                                                           |
-| **Nguyên nhân**                                                 |                                                           |
-| **Ba nhóm giá trị `priority` và cách xử lý từng nhóm** |                                                           |
-| **Cách khắc phục**                                             |                                                           |
-| **Bằng chứng**                                                  | `quarantine_tickets` = … hàng · `dbt test` … pass |
+|                                                                         |                                                                                                                                                                                                                                                                      |
+| ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Triệu chứng**                                                 | Sau khi nguồn đổi từ nhãn số sang nhãn chữ, Silver có 6.606 giá trị`priority` NULL hoặc ngoài miền 1..4 nhưng pipeline không cảnh báo.                                                                                                           |
+| **Nguyên nhân**                                                 | Nguồn đã tiến hóa schema từ nhãn số sang nhãn chữ nhưng transform vẫn chỉ`try_cast`. Cách xử lý này vừa loại nhầm nhãn chữ hợp lệ, vừa chấp nhận số ngoài miền; contract lại đang tắt nên pipeline không phát hiện sai lệch. |
+| **Ba nhóm giá trị `priority` và cách xử lý từng nhóm** | `'1'`, `'2'`, `'3'`, `'4'` → số tương ứng; `urgent`, `high`, `medium`, `low` → 1, 2, 3, 4; `0`, `5`, `-1`, `P1`, `P2`, `unknown`, chuỗi rỗng và NULL → quarantine.                                                             |
+| **Cách khắc phục**                                             | Dùng một macro`CASE` chung; Silver lọc bản ghi lỗi trước khi `row_number`; quarantine giữ từng bản ghi CDC lỗi; bật contract và test `not_null`/`accepted_values`.                                                                              |
+| **Bằng chứng**                                                  | `quarantine_tickets` = 312 hàng · `dbt test` 11/11 pass · Silver đủ 12.480 ticket và `priority` sạch                                                                                                                                                    |
 
 Câu hỏi thiết kế: nên chặn ở tầng Bronze hay Silver? Vì sao **không** để
 pipeline dừng khi gặp bản ghi lỗi?
 
-> …
+> Không chặn ở Bronze: tầng này nên lưu nguyên trạng dữ liệu nguồn để có thể
+> điều tra và phát lại khi schema thay đổi. Việc chuẩn hóa và áp contract đầu ra
+> thuộc Silver. Lỗi chỉ nằm trên một số bản ghi nên chúng được tách vào
+> quarantine để người trực xử lý; dừng cả pipeline sẽ giữ lại cả dữ liệu hợp lệ
+> của event và transcript mà không cải thiện khả năng phục hồi bản ghi lỗi.
 
 ---
 
