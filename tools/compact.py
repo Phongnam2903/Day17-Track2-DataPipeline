@@ -46,6 +46,7 @@ phải giảm, `files` phải giảm, và `result hash` phải GIỮ NGUYÊN.
 from __future__ import annotations
 
 import pathlib
+import shutil
 import sys
 
 import duckdb
@@ -58,32 +59,58 @@ DST = DATA / "gold_events_v2"
 
 
 def main() -> int:
-    con = duckdb.connect()
-
-    n_src = len(list(SRC.glob("*.parquet")))
+    src_files = list(SRC.glob("*.parquet"))
+    n_src = len(src_files)
     print(f"  nguồn : {SRC}  ({n_src:,} file)")
 
-    # TODO(nhiệm vụ 4): hiện thực khung COPY ... TO ... ở phần docstring.
-    #
-    #   con.execute(f"""
-    #       copy (
-    #           select * from read_parquet('{SRC}/*.parquet')
-    #           order by ...
-    #       ) to '{DST}' (
-    #           format parquet,
-    #           partition_by (...),
-    #           overwrite_or_ignore,
-    #           row_group_size ...
-    #       )
-    #   """)
-    #
-    # Sau đó kiểm tra không mất hàng nào:
-    #
-    #   assert <số row dataset cũ> == <số row dataset mới>
+    if not src_files:
+        raise SystemExit("  không tìm thấy dữ liệu nguồn — chạy `make seed-extra` trước")
 
-    print("\n  tools/compact.py chưa được hiện thực — đây là nhiệm vụ 4.")
-    print("  Mở file này, đọc phần KHUNG THỰC HIỆN ở đầu file và điền vào TODO.")
-    print("  Hướng dẫn từng bước: GUIDE.md mục 4.\n")
+    # DST chỉ là dữ liệu dẫn xuất. Xoá kết quả cũ để mỗi lần compact tạo ra
+    # đúng một snapshot, không giữ lại file/partition thừa từ lần trước.
+    if DST.exists():
+        if DST.parent.resolve() != DATA.resolve():
+            raise RuntimeError(f"từ chối xoá đường dẫn ngoài data/: {DST}")
+        shutil.rmtree(DST)
+
+    src_glob = (SRC / "*.parquet").as_posix()
+    dst_path = DST.as_posix()
+    dst_glob = (DST / "**" / "*.parquet").as_posix()
+
+    con = duckdb.connect()
+    try:
+        n_src_rows = con.execute(
+            f"select count(*) from read_parquet('{src_glob}')"
+        ).fetchone()[0]
+
+        con.execute(f"""
+            copy (
+                select *
+                from read_parquet('{src_glob}')
+                order by event_date, customer_name, event_time, event_id
+            ) to '{dst_path}' (
+                format parquet,
+                partition_by (event_date),
+                overwrite_or_ignore,
+                row_group_size 2048
+            )
+        """)
+
+        n_dst_rows = con.execute(f"""
+            select count(*)
+            from read_parquet('{dst_glob}', hive_partitioning = true)
+        """).fetchone()[0]
+    finally:
+        con.close()
+
+    if n_src_rows != n_dst_rows:
+        raise RuntimeError(
+            f"compact làm đổi số hàng: nguồn={n_src_rows:,}, đích={n_dst_rows:,}"
+        )
+
+    n_dst = len(list(DST.rglob("*.parquet")))
+    print(f"  đích  : {DST}  ({n_dst:,} file)")
+    print(f"  số hàng: {n_src_rows:,} → {n_dst_rows:,} (không đổi)\n")
     return 0
 
 

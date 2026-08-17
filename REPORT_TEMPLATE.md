@@ -197,10 +197,10 @@ pipeline dừng khi gặp bản ghi lỗi?
 
 |                             |                                                                                                                                 |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Bài đã làm**    | Không làm.                                                                                                                    |
-| **Nguyên nhân**     | Hai bài mở rộng không bắt buộc; phạm vi thực hiện tập trung vào ba sự cố chính để hoàn thành đủ 100 điểm. |
-| **Cách khắc phục** | Không áp dụng.                                                                                                               |
-| **Bằng chứng**      | `make verify` ghi nhận “chưa chạy make seed-extra”; bốn tiêu chí bắt buộc vẫn đạt 4/4.                           |
+| **Bài đã làm**    | Bài A — tối ưu query dashboard chậm. |
+| **Nguyên nhân**     | Dataset gồm 5.000 file Parquet rất nhỏ, không partition nên DuckDB phải mở và quét toàn bộ file. Điều kiện `strftime(event_time, ...)` bọc cột trong hàm nên không thể tận dụng partition pruning hoặc min/max statistics. |
+| **Cách khắc phục** | Trong `tools/compact.py`, compact dữ liệu thành 14 partition theo `event_date`, sắp theo `customer_name, event_time` và đặt row group 2.048 hàng. Trong `queries/dashboard.sql`, đọc dataset mới với `hive_partitioning=true` và lọc trực tiếp bằng `event_date = DATE '2026-08-09'`. |
+| **Bằng chứng**      | `rows scanned`: 5.000.000 → 9.324, giảm **536,3×** · file: 5.000 → 14 · số hàng: 130.683 → 130.683 · result hash giữ nguyên `4379e4c5d9f3` · `make verify` vẫn đạt 4/4. |
 
 ---
 
